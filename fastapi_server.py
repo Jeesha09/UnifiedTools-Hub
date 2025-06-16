@@ -6,6 +6,8 @@ from datetime import datetime  # Add this import
 from bs4 import BeautifulSoup
 import requests
 from pydantic import BaseModel
+import json
+from fastapi import Response
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -13,9 +15,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from typing import Optional,List,Dict, Any
 from fastapi import Body
+from python.Chatbot.llm import generate_response   # Ensure correct import path
+
 
 # Import the service functions
-from python.llm import generate  # LLM service
 from python.imageGraphics.bgRemover import remove_background
 from python.imageGraphics.barcodeGenerator import generate_barcode  # Barcode generator service
 from python.textValidators.markdown_editor import validate_markdown, fix_markdown, markdown_to_html  # Markdown services
@@ -71,29 +74,27 @@ def save_binary_file(file_name, data):
     except Exception as e:
         print(f"Error saving file: {str(e)}")
         raise
-@app.post("/generate2")
-async def generate_tool_recommendation(request: Dict[str, Any] = Body(...)):
+    
+@app.post("/chat")
+async def chat_endpoint(request: Dict[str, Any] = Body(...)):
     query = request.get("query")
     if not query:
         raise HTTPException(status_code=400, detail="Missing 'query' in request body.")
-
     try:
-        # Call the generate function with the user query
-        response_text = generate(query)
-
-        # Parse the response text into JSON if it's in JSON format
-        if response_text.startswith("```json") and response_text.endswith("```"):
-            response_text = response_text.strip("```json").strip("```")
+        response_text = generate_response(query)  # now passes the argument correctly
+        response_text = response_text.strip()
+        print("LLM Output:", response_text)
         try:
-            response_json = eval(response_text)  # Use json.loads if safer input is ensured
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Invalid JSON response: {str(e)}")
-
-        return response_json
+            response_json = json.loads(response_text)
+            return response_json
+        except json.JSONDecodeError as jde:
+            print("JSON decode error:", jde)
+            print("Response text that failed JSON parsing:", repr(response_text))
+            return Response(content=response_text, media_type="text/plain")
     except Exception as e:
+        print("Exception in /chat endpoint:", e)
         raise HTTPException(status_code=500, detail=f"Error generating recommendation: {str(e)}")
-from python.llm import generate  # Import the generate function from llm1.py
-
+    
 @app.post("/web-preview")
 async def web_preview_endpoint(request: Dict[str, Any] = Body(...)):
     query = request.get("query")
@@ -102,7 +103,7 @@ async def web_preview_endpoint(request: Dict[str, Any] = Body(...)):
 
     try:
         # Call the generate function with the user query
-        response_text = generate(query)
+        response_text = generate_response(query)
 
         # Parse the response text into JSON if it's in JSON format
         if response_text.startswith("```json") and response_text.endswith("```"):

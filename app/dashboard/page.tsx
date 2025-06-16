@@ -3,6 +3,7 @@ import { useState } from "react"
 import Sidebar from "@/components/sidebar"
 import DashboardOverview from "@/components/dashboard-overview"
 import "../../styles/dashboard.css"
+import Nlp from "@/python/Chatbot/Nlp"
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -22,6 +23,7 @@ export default function Dashboard() {
         </div>
         
         <DashboardOverview />
+        <Nlp />
       </main>
     </div>
   )
