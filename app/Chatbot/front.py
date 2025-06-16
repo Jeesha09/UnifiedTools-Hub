@@ -1,96 +1,262 @@
+# To run this code you need to install the following dependency:
+# pip install google-genai
+
 import base64
 import os
-import json
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from google import genai
 from google.genai import types
-from dotenv import load_dotenv
-import uvicorn
 
-# Load environment variables
-load_dotenv()
 
-# Initialize FastAPI app
-app = FastAPI(title="Gemini API Server")
-
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
-
-# Define request model
-class QueryRequest(BaseModel):
-    query: str
-
-# Initialize Gemini client
-def get_gemini_client():
-    return genai.Client(
-        api_key=os.getenv("GEMINI_API_KEY"),
+def generate(userinput):
+    client = genai.Client(
+        api_key="AIzaSyDh-pmbbaHl8NzKquqA_uIhwHR2qisGraI",
     )
 
-@app.post("/generate3")
-async def generate_endpoint(request: QueryRequest, client=Depends(get_gemini_client)):
-    user_query = request.query
-    
-    model = "gemini-2.0-flash"
-
+    model = "gemini-2.5-flash-preview-05-20"
     contents = [
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text=user_query),
-            ],
+                types.Part.from_text(text=f"""You're building a chatbot for a website named Innovatrix – all tools in one place. The chatbot should help users by suggesting which tool to use based on what the user wants to do. It should also provide a clickable link as provided in the json below to the corresponding tool already available on the website.
+
+The chatbot should work like this:
+
+Understand natural language input like:
+"I want to remove the background of my image"
+"Need help writing Markdown"
+"Validate this JSON file"
+"Generate a QR code for a URL"
+
+Based on the intent, recommend the most appropriate tool along with its description and a direct link using the provided tool paths.
+
+The structure of tools is provided in the following JSON format, grouped by five suites: Developer Suite, Student Suite, Office Suite, Designer Suite, and Network Suite.
+
+The tool object contains:
+
+"name" – name of the tool
+"path" – relative path of the tool for redirection
+"description" – what the tool does
+
+You should:
+
+Use intent recognition to map the user query to the most suitable tool.
+Respond in this format:
+
+Based on your query, I recommend using the [Tool Name].
+
+📄 Description: [Tool Description]  
+🔗 Open here: [Link – insert base domain + path]
+
+If multiple tools are relevant, list the best 1–2 options.
+
+Base domain of the site: http://localhost:3000/dashboard
+
+Here is the full list of tools:
+
+{{
+  "Developer Suite": [
+    {{
+      "name": "Code Formatter",
+      "path": "python/codeFormatter.py",
+      "description": "Formats code in various languages to improve readability and maintain coding standards."
+    }},
+    {{
+      "name": "JSON Validator",
+      "path": "python/textValidators/json_validator.py",
+      "description": "Validates JSON strings to ensure proper syntax and assists in debugging malformed JSON."
+    }},
+    {{
+      "name": "YAML Validator",
+      "path": "python/textValidators/yaml_validator.py",
+      "description": "Checks YAML documents for syntax errors and proper structure, making it easier to work with configuration files."
+    }},
+    {{
+      "name": "XML Validator",
+      "path": "python/textValidators/xml_validator.py",
+      "description": "Validates and formats XML documents, ensuring they are well-formed and can be correctly parsed."
+    }},
+    {{
+      "name": "REST API Client",
+      "path": "python/restApiClient.py",
+      "description": "Allows developers to test and debug RESTful APIs, with options to customize headers, parameters, and authentication."
+    }},
+    {{
+      "name": "LLM Service",
+      "path": "python/llm.py",
+      "description": "Provides access to language model capabilities for text generation, summarization, and more."
+    }},
+    {{
+      "name": "Markdown Editor",
+      "path": "components/markdown-editor-tool.tsx",
+      "description": "Offers a rich text editor for Markdown with live preview, helping users create formatted content easily."
+    }}
+  ],
+  "Student Suite": [
+    {{
+      "name": "Random Generator",
+      "path": "python/randomGenerator.py",
+      "description": "Generates random numbers, words, sentences, or emojis to encourage creativity and support testing scenarios."
+    }},
+    {{
+      "name": "Random UUID Generator",
+      "path": "components/random-uuid-generator-tool.tsx",
+      "description": "Generates universally unique identifiers (UUIDs) for use in applications requiring unique keys or IDs."
+    }},
+    {{
+      "name": "Productivity Tools",
+      "path": "components/ProductivityTools.tsx",
+      "description": "A collection of tools aimed at enhancing academic and personal productivity, including scheduling and note-taking features."
+    }},
+    {{
+      "name": "CSV/Excel/SQL Tool",
+      "path": "python/csv_excel_sql.py",
+      "description": "Helps students convert, manage, and analyze data across CSV, Excel, and SQL formats."
+    }},
+    {{
+      "name": "PDF Merge",
+      "path": "python/pdfs/pdfMerge.py",
+      "description": "Merges multiple PDF files into one document, useful for compiling research reports and assignments."
+    }}
+  ],
+  "Office Suite": [
+    {{
+      "name": "Password Generator",
+      "path": "components/password-generator-tool.tsx",
+      "description": "Generates strong, random passwords to help ensure secure access to systems and accounts."
+    }},
+    {{
+      "name": "AES Encryption Tool",
+      "path": "components/aes-encryption-tool.tsx",
+      "description": "Encrypts and decrypts data using AES standards, ensuring confidential information remains secure."
+    }},
+    {{
+      "name": "User Feedback",
+      "path": "python/UserFeedback.py",
+      "description": "Collects and manages user feedback to improve products and services through targeted responses."
+    }},
+    {{
+      "name": "Cloud Storage",
+      "path": "python/cloud_storage.py",
+      "description": "Integrates cloud storage functionality including file uploads and temporary link creation for file sharing and backups."
+    }}
+  ],
+  "Designer Suite": [
+    {{
+      "name": "Background Remover",
+      "path": "python/imageGraphics/bgRemover.py",
+      "description": "Removes backgrounds from images to create clean visuals, ideal for design projects and professional presentations."
+    }},
+    {{
+      "name": "Barcode Generator",
+      "path": "components/barcode-generator-tool.tsx",
+      "description": "Creates barcode images from user input, useful for inventory management and product labeling."
+    }},
+    {{
+      "name": "QR Code Generator",
+      "path": "components/qr-generator-tool.tsx",
+      "description": "Generates QR codes from text or URLs to facilitate quick access and digital linking."
+    }},
+    {{
+      "name": "Image Converter",
+      "path": "components/image-converter-tool.tsx",
+      "description": "Converts images between different formats and applies compression, assisting designers in optimizing assets."
+    }},
+    {{
+      "name": "AI Image Generator",
+      "path": "components/image-generator-tool.tsx",
+      "description": "Uses AI algorithms to generate images based on text prompts, helping designers quickly prototype visual ideas."
+    }},
+    {{
+      "name": "Color Picker",
+      "path": "components/color-picker-tool.tsx",
+      "description": "Allows designers to select and convert colors interactively, ensuring consistency in brand and design projects."
+    }},
+    {{
+      "name": "Color Palette Generator",
+      "path": "components/palette-generator-tool.tsx",
+      "description": "Generates harmonious color palettes based on design principles, aiding designers in creating visually appealing compositions."
+    }},
+    {{
+      "name": "JPG Compress",
+      "path": "python/jpg_compress.py",
+      "description": "Compresses JPG images to reduce file size while preserving quality, which is crucial for web and print designs."
+    }}
+  ],
+  "Network Suite": [
+    {{
+      "name": "Network Tool",
+      "path": "components/network-tool.tsx",
+      "description": "Performs network operations such as ping, IP lookup, and traceroute to help diagnose connectivity issues."
+    }},
+    {{
+      "name": "SEO Tools",
+      "path": "components/SEOTools.tsx",
+      "description": "Analyzes web page SEO metrics, including keyword density and meta tag generation, to help optimize online content."
+    }},
+    {{
+      "name": "Web Scraper",
+      "path": "components/web-scraper-tool.tsx",
+      "description": "Fetches and extracts content from web pages using URL and CSS selectors, enabling data collection for analysis."
+    }}
+  ]
+}}
+user input -
+{userinput}""")
+            ]
+        ),
+        types.Content(
+            role="model",
+            parts=[
+                types.Part.from_text(text="""**Locating a Formatting Tool**
+
+I've homed in on the "Code Formatter" tool within the Developer Suite. Its description directly aligns with the user's need to format Python code for better readability and adherence to standards. I'll need to explore its implementation, specifically the `python/codeFormatter.py` path, to understand how it functions.
+
+
+**Examining Tool Implementation**
+
+I've begun to dissect the `python/codeFormatter.py` file, aiming to understand its inner workings. My focus now is the tool's core logic: how it interprets and transforms the provided Python code. I am particularly interested in how it applies formatting standards. My progress seems promising.
+"""),
+                types.Part.from_text(text="""{
+  "description": "Formats code in various languages to improve readability and maintain coding standards.",
+  "name": "Code Formatter",
+  "path": "python/codeFormatter.py"
+}""")
+            ]
+        ),
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text="INSERT_INPUT_HERE")
+            ]
         ),
     ]
-    tools = [
-        types.Tool(google_search=types.GoogleSearch())
-    ]
-
-    # Read the system prompt from an external file
-    try:
-        with open("systemprompt.txt", "r", encoding="utf-8") as sp:
-            system_prompt_text = sp.read()
-    except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="System prompt file not found.")
-
+    
     generate_content_config = types.GenerateContentConfig(
-        temperature=2,
-        top_p=0.95,
-        top_k=40,
-        max_output_tokens=8192,
-        tools=tools,
-        response_mime_type="text/plain",
-        system_instruction=[
-            types.Part.from_text(text=system_prompt_text)
-        ],
+        response_mime_type="application/json",
+        response_schema=genai.types.Schema(
+            type=genai.types.Type.OBJECT,
+            required=["name", "path", "description"],
+            properties={
+                "name": genai.types.Schema(
+                    type=genai.types.Type.STRING,
+                ),
+                "path": genai.types.Schema(
+                    type=genai.types.Type.STRING,
+                ),
+                "description": genai.types.Schema(
+                    type=genai.types.Type.STRING,
+                ),
+            },
+        ),
     )
 
-    # Collect the response from the stream
-    response_text = ""
     for chunk in client.models.generate_content_stream(
         model=model,
         contents=contents,
         config=generate_content_config,
     ):
-        response_text += chunk.text
-
-    # Remove code block markers if present
-    if response_text.startswith("```json") and response_text.endswith("```"):
-        response_text = response_text.strip("```json").strip("```")
-
-    try:
-        # Parse the JSON string - using json.loads instead of eval for safety
-        response_json = json.loads(response_text)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Invalid JSON response: {str(e)}")
-
-    return response_json
+        print(chunk.text, end="")
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
+    userinput = input("Enter your query: ")
+    generate(userinput)

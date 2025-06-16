@@ -92,7 +92,7 @@ async def generate_tool_recommendation(request: Dict[str, Any] = Body(...)):
         return response_json
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating recommendation: {str(e)}")
-from python.llm1 import generate  # Import the generate function from llm1.py
+from python.llm import generate  # Import the generate function from llm1.py
 
 @app.post("/web-preview")
 async def web_preview_endpoint(request: Dict[str, Any] = Body(...)):

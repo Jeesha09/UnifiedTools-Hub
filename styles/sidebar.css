@@ -14,7 +14,7 @@
 
 .sidebar.closed {
   transform: translateX(-100%);
-}
+}x
 
 .sidebar-header {
   display: flex;
@@ -130,10 +130,9 @@
 
 /* ...rest of your existing code... */
 .sidebar-open-button {
-  position: fixed;
-  top: 1rem;
+  position: relative;
+  top: 1.5rem;
   left: 1rem;
-  z-index: 99;
   background: rgba(0, 0, 0, 0.8);
   border: none;
   color: white;

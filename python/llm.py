@@ -1,7 +1,7 @@
 import base64
 import os
-import google.generativeai as genai
-from genai import types
+# import google.genai as genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()

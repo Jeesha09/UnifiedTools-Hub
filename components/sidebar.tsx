@@ -44,8 +44,9 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             {isOpen ? "✕" : "☰"}
           </button>
         </div>
+        
         <nav className="sidebar-nav">
-          <Link href="/dashboard/profile" className="nav-item">
+          <Link href="/profile" className="nav-item">
             <span className="nav-icon">👤</span>
             <span className="nav-text">Profile</span>
           </Link>

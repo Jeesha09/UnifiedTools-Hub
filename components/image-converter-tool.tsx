@@ -4,106 +4,125 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Download, ImageIcon } from "lucide-react"
+import { Loader2, Upload, Download, ImageIcon } from "lucide-react"
 
-export default function ImageGeneratorTool() {
-  const [prompt, setPrompt] = useState("")
-  const [result, setResult] = useState<string | null>(null)
+export default function ImageFormatConverter() {
+  const [file, setFile] = useState<File | null>(null)
+  const [previewURL, setPreviewURL] = useState<string | null>(null)
+  const [convertedURL, setConvertedURL] = useState<string | null>(null)
+  const [format, setFormat] = useState<"png" | "jpeg" | "webp">("png")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const handleGenerate = async () => {
-    if (!prompt) {
-      setError("Please enter a prompt for the image");
-      return;
-    }
-  
-    setLoading(true);
-    setError(null);
-  
-    try {
-      const response = await fetch("http://localhost:8000/generate-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({ prompt }),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to generate image");
-      }
-  
-      const data = await response.json();
-      setResult(`http://localhost:8000${data.image_url}`); // Ensure full URL
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
-    } finally {
-      setLoading(false);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0]
+    if (selected) {
+      setFile(selected)
+      setPreviewURL(URL.createObjectURL(selected))
+      setConvertedURL(null)
     }
   }
 
-  const handleDownload = () => {
-    if (result) {
-      const a = document.createElement("a");
-      a.href = result; // Use the full URL
-      a.download = "generated-image.png";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+  const convertImage = () => {
+    if (!file || !previewURL) return
+    setLoading(true)
+
+    const img = new Image()
+    img.crossOrigin = "anonymous"
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext("2d")
+      if (!ctx) return
+
+      ctx.drawImage(img, 0, 0)
+
+      const mimeType = `image/${format}`
+      const dataURL = canvas.toDataURL(mimeType)
+      setConvertedURL(dataURL)
+      setLoading(false)
     }
-  };
+    img.src = previewURL
+  }
+
+  const handleDownload = () => {
+    if (!convertedURL) return
+    const a = document.createElement("a")
+    a.href = convertedURL
+    a.download = `converted.${format}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
 
   return (
     <div className="tool-ui">
       <div className="tool-ui-header">
-        <div className="tool-ui-icon">🖌️</div>
-        <h1 className="text-2xl font-bold">AI Image Generator</h1>
+        <div className="tool-ui-icon">🔁</div>
+        <h1 className="text-2xl font-bold">Image Format Converter</h1>
       </div>
-      <div className="tool-ui-description">Generate images from text descriptions using AI.</div>
+      <div className="tool-ui-description">Convert images to PNG, JPEG, or WebP formats.</div>
 
-      <Card className="p-6">
-        <div className="mb-4">
-          <Label htmlFor="image-prompt">Prompt</Label>
-          <Textarea
-            id="image-prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the image you want to generate in detail..."
-            className="mt-1 min-h-[100px]"
+      <Card className="p-6 space-y-4">
+        <div>
+          <Label htmlFor="image-upload">Upload Image</Label>
+          <input
+            id="image-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="mt-2"
           />
         </div>
 
-        <Button onClick={handleGenerate} disabled={!prompt || loading} className="mb-4 w-full">
+        <div>
+          <Label>Choose Format</Label>
+          <select
+            className="mt-1 w-full border rounded p-2"
+            value={format}
+            onChange={(e) => setFormat(e.target.value as "png" | "jpeg" | "webp")}
+          >
+            <option value="png">PNG</option>
+            <option value="jpeg">JPEG</option>
+            <option value="webp">WebP</option>
+          </select>
+        </div>
+
+        <Button
+          onClick={convertImage}
+          disabled={!file || loading}
+          className="w-full"
+        >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating Image...
+              Converting...
             </>
           ) : (
             <>
               <ImageIcon className="mr-2 h-4 w-4" />
-              Generate Image
+              Convert Image
             </>
           )}
         </Button>
 
-        {error && <div className="text-destructive mb-4">Error: {error}</div>}
+        {previewURL && (
+          <div>
+            <h3 className="font-semibold mb-2">Original Preview</h3>
+            <img src={previewURL} alt="Original" className="w-full rounded-md border mb-4" />
+          </div>
+        )}
 
-        {result && (
-  <div>
-    <h3 className="text-lg font-medium mb-2">Generated Image</h3>
-    <div className="border rounded-md overflow-hidden mb-4">
-      <img src={result} alt="Generated" className="w-full" /> {/* Preview */}
-    </div>
-    <Button onClick={handleDownload} className="w-full">
-      <Download className="mr-2 h-4 w-4" />
-      Download Image
-    </Button>
-  </div>
-)}
+        {convertedURL && (
+          <div>
+            <h3 className="font-semibold mb-2">Converted Image</h3>
+            <img src={convertedURL} alt="Converted" className="w-full rounded-md border mb-4" />
+            <Button onClick={handleDownload} className="w-full">
+              <Download className="mr-2 h-4 w-4" />
+              Download Image
+            </Button>
+          </div>
+        )}
       </Card>
     </div>
   )
