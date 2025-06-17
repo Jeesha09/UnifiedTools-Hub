@@ -1,5 +1,6 @@
 import os
 import uuid
+import re
 import shutil
 from pathlib import Path
 from datetime import datetime  # Add this import

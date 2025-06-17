@@ -1,5 +1,9 @@
 import type React from "react"
 import "../styles/global.css"
+import { ToolProvider } from "@/contexts/ToolContext";
+import ToolDialogManager from "@/components/ToolDialogManager";
+import { Inter } from "next/font/google";
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Innovatrix - All Your Tools in One Place",
@@ -16,8 +20,13 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body>{children}</body>
-      </html>
+      <body className={inter.className}>
+        <ToolProvider>
+          {children}
+          <ToolDialogManager />
+        </ToolProvider>
+      </body>
+    </html>
     </ClerkProvider>
   )
 }

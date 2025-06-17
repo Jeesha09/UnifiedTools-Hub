@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition"
+import { useToolContext } from "@/contexts/ToolContext"
 import "./Llm.css"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -18,6 +19,7 @@ export default function Nlp() {
 
   const messagesEndRef = useRef(null);
   const widgetRef = useRef(null);
+  const { openTool } = useToolContext();
 
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
 
@@ -43,6 +45,28 @@ export default function Nlp() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  // Custom link click handler
+  useEffect(() => {
+    const handleToolLinkClick = (event) => {
+      const target = event.target;
+      if (target.tagName === 'A' && target.href && target.href.includes('/dashboard/')) {
+        event.preventDefault();
+        
+        // Extract tool path from href
+        const url = new URL(target.href);
+        const toolPath = url.pathname.replace('/dashboard/', '');
+        
+        // Get tool name from the link text or data attribute
+        const toolName = target.getAttribute('data-tool-name') || target.textContent;
+        
+        openTool(toolPath, toolName);
+      }
+    };
+
+    document.addEventListener('click', handleToolLinkClick);
+    return () => document.removeEventListener('click', handleToolLinkClick);
+  }, [openTool]);
+
   const toggleWidget = () => {
     setIsOpen(!isOpen);
   };
@@ -63,17 +87,19 @@ export default function Nlp() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
+      
       // Build the base domain and tool link
       const baseDomain = "http://localhost:3000/dashboard/";
       const toolLink = baseDomain + data.path;
-      // Create an HTML anchor tag to replace the URL with the word "LINK"
-      const toolLinkHtml = `<a href="${toolLink}" target="_blank" rel="noopener noreferrer">LINK</a>`;
+      
+      // Create an HTML anchor tag with data attribute for tool name
+      const toolLinkHtml = `<a href="${toolLink}" data-tool-name="${data.name}" target="_blank" rel="noopener noreferrer" style="color: #8b5cf6; text-decoration: underline; font-weight: bold;">OPEN TOOL</a>`;
       
       // Build the output with HTML markup and line breaks (<br> tags)
       const botText = data.description ? 
-        `Based on your query, I recommend using the <strong>${data.name}</strong> tool.<br><br>
-        📄 Description: ${data.description}<br><br>
-        🔗 Open here: ${toolLinkHtml}` :
+        `Based on your query, I recommend using the <strong style="color: #60a5fa;">${data.name}</strong> tool.<br><br>
+        📄 <span style="color: #d1d5db;">Description:</span> ${data.description}<br><br>
+        🔗 <span style="color: #d1d5db;">Access:</span> ${toolLinkHtml}` :
         "Sorry, I couldn't process that request.";
       
       // Mark this message as containing HTML
