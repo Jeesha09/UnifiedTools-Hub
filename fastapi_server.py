@@ -17,6 +17,7 @@ from typing import Optional,List,Dict, Any
 from fastapi import Body
 from python.Chatbot.llm import generate_response   # Ensure correct import path
 
+from python.csv_excel_sql import process_csv_data, convert_file
 
 # Import the service functions
 from python.imageGraphics.bgRemover import remove_background
@@ -74,6 +75,48 @@ def save_binary_file(file_name, data):
     except Exception as e:
         print(f"Error saving file: {str(e)}")
         raise
+
+@app.post("/process_csv")
+async def process_csv_endpoint(
+    csv_data: str = Form(...),
+    table_name: str = Form("my_table"),
+    conversion_type: str = Form("csv_to_sql")
+):
+    result = process_csv_data(csv_data, table_name)
+    if result is None:
+        raise HTTPException(status_code=400, detail="Failed to process CSV data")
+    return JSONResponse({"sql": result})
+
+@app.post("/convert")
+async def convert_file_endpoint(
+    file: UploadFile = File(...),
+    conversion_type: str = Form(...),
+    table_name: str = Form("my_table")
+):
+    unique_id = str(uuid.uuid4())
+    input_filename = f"{unique_id}_{file.filename}"
+    input_path = UPLOAD_DIR / input_filename
+    
+    # Save uploaded file
+    with open(input_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    if conversion_type.endswith("_to_sql"):
+        # For SQL conversions, return JSON
+        result = convert_file(str(input_path), conversion_type, table_name)
+        os.remove(input_path)
+        if result is None:
+            raise HTTPException(status_code=500, detail="Conversion failed")
+        return JSONResponse({"sql": result})
+    else:
+        # For file conversions, return file download
+        output_filename = f"{unique_id}.{'xlsx' if 'excel' in conversion_type else 'csv'}"
+        output_path = OUTPUT_DIR / output_filename
+        result = convert_file(str(input_path), conversion_type, table_name, str(output_path))
+        os.remove(input_path)
+        if result is None:
+            raise HTTPException(status_code=500, detail="Conversion failed")
+        return FileResponse(path=str(output_path), filename=output_filename)
     
 @app.post("/chat")
 async def chat_endpoint(request: Dict[str, Any] = Body(...)):

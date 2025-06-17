@@ -19,6 +19,19 @@ import RandomUUIDGeneratorTool from '@/components/random-uuid-generator-tool';
 import ProductivityTools from '@/components/ProductivityTools';
 import MarkdownEditorTool from '@/components/markdown-editor-tool';
 import BgRemoverTool from '@/components/bg-remover-tool';
+
+// Import Python tool components
+import CodeFormatterTool from '@/components/code-formatter-tool';
+import JsonValidatorTool from '@/components/json-validator-tool';
+import YamlValidatorTool from '@/components/yaml-validator-tool';
+import XmlValidatorTool from '@/components/xml-validator-tool';
+import RestApiClientTool from '@/components/rest-api-client-tool';
+import RandomGeneratorTool from '@/components/random-generator-tool';
+import CsvExcelSqlTool from '@/components/csv-excel-sql-pg-tool';
+import PdfMergeTool from '@/components/pdf-merger-tool';
+import UserFeedbackTool from '@/components/user-feedback-tool';
+import CloudStorageTool from '@/components/cloud-storage-tool';
+
 // Tool mapping object
 const toolComponents: { [key: string]: React.ComponentType } = {
   // Office Suite
@@ -32,7 +45,7 @@ const toolComponents: { [key: string]: React.ComponentType } = {
   'components/image-generator-tool.tsx': ImageGeneratorTool,
   'components/color-picker-tool.tsx': ColorPickerTool,
   'components/palette-generator-tool.tsx': PaletteGeneratorTool,
-  'components/bg-remover-tool.tsx': BgRemoverTool,
+  'python/imageGraphics/bgRemover.py': BgRemoverTool,
   
   // Network Suite
   'components/network-tool.tsx': NetworkTool,
@@ -45,57 +58,23 @@ const toolComponents: { [key: string]: React.ComponentType } = {
   
   // Developer Suite
   'components/markdown-editor-tool.tsx': MarkdownEditorTool,
+  'python/codeFormatter.py': CodeFormatterTool,
+  'python/textValidators/json_validator.py': JsonValidatorTool,
+  'python/textValidators/yaml_validator.py': YamlValidatorTool,
+  'python/textValidators/xml_validator.py': XmlValidatorTool,
+  'python/restApiClient.py': RestApiClientTool,
+  'python/randomGenerator.py': RandomGeneratorTool,
+  'python/csv_excel_sql.py': CsvExcelSqlTool,
+  'python/pdfs/pdfMerge.py': PdfMergeTool,
+  'python/UserFeedback.py': UserFeedbackTool,
+  'python/cloud_storage.py': CloudStorageTool,
 };
-
-// Python tools that need special handling
-const pythonTools = [
-  'python/codeFormatter.py',
-  'python/textValidators/json_validator.py',
-  'python/textValidators/yaml_validator.py',
-  'python/textValidators/xml_validator.py',
-  'python/restApiClient.py',
-  'python/llm.py',
-  'python/randomGenerator.py',
-  'python/csv_excel_sql.py',
-  'python/pdfs/pdfMerge.py',
-  'python/UserFeedback.py',
-  'python/cloud_storage.py',
-//   'python/imageGraphics/bgRemover.py',
-  'python/jpg_compress.py',
-];
 
 const ToolDialogManager: React.FC = () => {
   const { currentTool, currentToolName, isToolOpen, closeTool } = useToolContext();
 
   if (!isToolOpen || !currentTool) {
     return null;
-  }
-
-  // Check if it's a Python tool
-  if (pythonTools.includes(currentTool)) {
-    return (
-      <Dialog open={isToolOpen} onOpenChange={closeTool}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-black border-2 border-purple-500/30 shadow-[0_20px_50px_rgba(139,92,246,0.3)] backdrop-blur-md">
-          <DialogHeader className="border-b border-slate-700/50 pb-4">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
-              {currentToolName || 'Python Tool'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-6">
-            <div className="text-center text-gray-300">
-              <p className="mb-4">This Python tool is not yet integrated into the web interface.</p>
-              <p className="text-sm text-gray-400">Tool path: {currentTool}</p>
-              <button 
-                onClick={closeTool}
-                className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-500 hover:to-blue-500 transition-all duration-300"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
   }
 
   // Render the appropriate tool component
