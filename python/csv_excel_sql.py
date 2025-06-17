@@ -2,6 +2,8 @@ import csv
 import pandas as pd
 from openpyxl import load_workbook
 import sqlite3
+import io
+from io import StringIO
 
 # ------------------Input ------------------
 
@@ -21,6 +23,102 @@ def input_data():
             continue
         data.append(dict(zip(columns, [v.strip() for v in values])))
     return data
+
+# ------------------ New Functions for FastAPI ------------------
+
+def process_csv_data(csv_data: str, table_name: str = "my_table"):
+    """Process CSV data and convert to SQL statements."""
+    try:
+        # Parse CSV data
+        csv_file = StringIO(csv_data)
+        df = pd.read_csv(csv_file)
+        
+        if df.empty:
+            return None
+        
+        # Generate SQL statements
+        sql_statements = []
+        
+        # Create table statement
+        columns = []
+        for col in df.columns:
+            columns.append(f"{col} TEXT")
+        
+        create_table = f"CREATE TABLE {table_name} (\n    " + ",\n    ".join(columns) + "\n);"
+        sql_statements.append(create_table)
+        sql_statements.append("")
+        
+        # Insert statements
+        for _, row in df.iterrows():
+            values = []
+            for val in row:
+                if pd.isna(val):
+                    values.append("NULL")
+                else:
+                    escaped_val = str(val).replace("'", "''")
+                    values.append(f"'{escaped_val}'")
+            
+            insert_sql = f"INSERT INTO {table_name} ({', '.join(df.columns)}) VALUES ({', '.join(values)});"
+            sql_statements.append(insert_sql)
+        
+        return "\n".join(sql_statements)
+        
+    except Exception as e:
+        return None
+
+def convert_file(input_path: str, conversion_type: str, table_name: str = "my_table", output_path: str = None):
+    """Convert files between CSV, Excel, and SQL formats."""
+    try:
+        if conversion_type == "csv_to_sql":
+            df = pd.read_csv(input_path)
+            return _dataframe_to_sql(df, table_name)
+        
+        elif conversion_type == "csv_to_excel":
+            df = pd.read_csv(input_path)
+            df.to_excel(output_path, index=False)
+            return output_path
+        
+        elif conversion_type == "excel_to_sql":
+            df = pd.read_excel(input_path)
+            return _dataframe_to_sql(df, table_name)
+        
+        elif conversion_type == "excel_to_csv":
+            df = pd.read_excel(input_path)
+            df.to_csv(output_path, index=False)
+            return output_path
+        
+        return None
+        
+    except Exception as e:
+        return None
+
+def _dataframe_to_sql(df, table_name):
+    """Helper function to convert DataFrame to SQL statements."""
+    sql_statements = []
+    
+    # Create table statement
+    columns = []
+    for col in df.columns:
+        columns.append(f"{col} TEXT")
+    
+    create_table = f"CREATE TABLE {table_name} (\n    " + ",\n    ".join(columns) + "\n);"
+    sql_statements.append(create_table)
+    sql_statements.append("")
+    
+    # Insert statements
+    for _, row in df.iterrows():
+        values = []
+        for val in row:
+            if pd.isna(val):
+                values.append("NULL")
+            else:
+                escaped_val = str(val).replace("'", "''")
+                values.append(f"'{escaped_val}'")
+        
+        insert_sql = f"INSERT INTO {table_name} ({', '.join(df.columns)}) VALUES ({', '.join(values)});"
+        sql_statements.append(insert_sql)
+    
+    return "\n".join(sql_statements)
 
 # ------------------ CSV ------------------
 
