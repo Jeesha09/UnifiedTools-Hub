@@ -38,7 +38,7 @@ export default function BarcodeGeneratorTool() {
       formData.append("transparent", transparent.toString())
       formData.append("textShow", textShow.toString())
 
-      const response = await fetch("/api/barcode-generator", {
+      const response = await fetch("/barcode-generator", {
         method: "POST",
         body: formData,
       })

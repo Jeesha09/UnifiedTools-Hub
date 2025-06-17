@@ -82,14 +82,29 @@ const ToolDialogManager: React.FC = () => {
   
   if (!ToolComponent) {
     return (
-      <Dialog open={isToolOpen} onOpenChange={closeTool}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-black border-2 border-purple-500/30 shadow-[0_20px_50px_rgba(139,92,246,0.3)] backdrop-blur-md">
-          <DialogHeader className="border-b border-slate-700/50 pb-4">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
-              Tool Not Found
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-6">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+          onClick={closeTool}
+        />
+        
+        {/* Dialog Content */}
+        <div className="relative z-[10000] w-full max-w-4xl max-h-[90vh] mx-4 bg-black border-2 border-purple-500/30 rounded-lg shadow-[0_20px_50px_rgba(139,92,246,0.3)] backdrop-blur-md overflow-hidden">
+          <div className="border-b border-slate-700/50 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                Tool Not Found
+              </h2>
+              <button 
+                onClick={closeTool}
+                className="text-gray-400 hover:text-white text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
             <div className="text-center text-gray-300">
               <p className="mb-4">The requested tool could not be found.</p>
               <p className="text-sm text-gray-400">Tool path: {currentTool}</p>
@@ -101,24 +116,39 @@ const ToolDialogManager: React.FC = () => {
               </button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Dialog open={isToolOpen} onOpenChange={closeTool}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto bg-black border-2 border-purple-500/30 shadow-[0_20px_50px_rgba(139,92,246,0.3)] backdrop-blur-md">
-        <DialogHeader className="border-b border-slate-700/50 pb-4">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
-            {currentToolName || 'Tool'}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="py-6">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+        onClick={closeTool}
+      />
+      
+      {/* Dialog Content */}
+      <div className="relative z-[10000] w-full max-w-6xl max-h-[95vh] mx-4 bg-black border-2 border-purple-500/30 rounded-lg shadow-[0_20px_50px_rgba(139,92,246,0.3)] backdrop-blur-md overflow-hidden">
+        <div className="border-b border-slate-700/50 p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              {currentToolName || 'Tool'}
+            </h2>
+            <button 
+              onClick={closeTool}
+              className="text-gray-400 hover:text-white text-2xl font-bold transition-colors"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
           <ToolComponent />
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
