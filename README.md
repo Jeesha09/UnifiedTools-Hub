@@ -16,9 +16,9 @@ Instead of using scattered platforms, users can access everything — from produ
 
 -  **All-in-One Platform** – Combines multiple tool categories into a unified interface  
 -  **Productivity Suite** – Pomodoro Timer, To-Do List, Notes, Habit Tracker, Analytics  
--  **Developer Suite** – (Planned/Implemented: JSON formatter, API tester, etc.)  
+-  **Developer Suite** – (Implemented: JSON formatter, API tester, etc.)  
 -  **Student & Academic Suite** – Learning-focused utilities  
--  **Designer & Creator Suite** – Creative tools (planned/extendable)  
+-  **Designer & Creator Suite** – Creative tools (extendable)  
 -  **Network & Security Suite** – Utility-based tools (future scope)  
 -  **Fast & Responsive UI** – Built with modern frontend technologies  
 -  **Local Storage Integration** – Persistent user data without backend dependency  
@@ -29,23 +29,8 @@ Instead of using scattered platforms, users can access everything — from produ
 
 - **Frontend:** React (Vite)
 - **Styling:** Tailwind CSS
-- **State Management:** (Redux if used / Context API)
-- **Storage:** Local Storage (for persistence)
-
----
-
-##  Project Structure
-
-```
-├── src/
-│   ├── components/        # Reusable UI components
-│   ├── pages/             # Different tool suites
-│   ├── features/          # Logic for tools (timer, notes, etc.)
-│   ├── store/             # State management (if Redux)
-│   └── App.jsx
-├── public/
-├── package.json
-```
+- **Backend:** Python (FastAPI)
+- **Storage:** Local Storage (
 
 ---
 
